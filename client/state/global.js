@@ -1,0 +1,130 @@
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { useAnchorWallet, useConnection } from '@solana/wallet-adapter-react';
+
+import {
+  getProgram,
+  getMasterAccountPk,
+  getBetAccountPk,
+} from '../utils/program';
+
+import toast from 'react-hot-toast';
+
+export const GlobalContext = createContext({
+  isConnected: null,
+  wallet: null,
+  hasUserAccount: null,
+  allBets: null,
+  fetchBets: null,
+});
+
+export const GlobalState = ({ children }) => {
+  const [program, setProgram] = useState();
+  const [isConnected, setIsConnected] = useState();
+  const [masterAccount, setMasterAccount] = useState();
+  const [allBets, setAllBets] = useState();
+  const [userBets, setUserBets] = useState();
+
+  const { connection } = useConnection();
+  const wallet = useAnchorWallet();
+
+  // Set program
+  useEffect(() => {
+    if (connection) {
+      setProgram(getProgram(connection, wallet ?? {}));
+    } else {
+      setProgram(null);
+    }
+  }, [connection, wallet]);
+
+  // Check wallet connection
+  useEffect(() => {
+    setIsConnected(!!wallet?.publicKey);
+  }, [wallet]);
+
+  const fetchMasterAccount = useCallback(async () => {
+    if (!program) return;
+
+    try {
+      const masterAccountPk = await getMasterAccountPk();
+      const masterAccount = await program.account.master.fetch(masterAccountPk);
+      setMasterAccount(masterAccount);
+    } catch (error) {
+      console.log("Couldn't fetch master account: ", error.message);
+      setMasterAccount(null);
+    }
+  });
+
+  // Check for masterAccount
+  useEffect(() => {
+    if (!masterAccount && program) {
+      fetchMasterAccount();
+    }
+  }, [masterAccount, program]);
+
+  const fetchBets = useCallback(async () => {
+    if (!program) return;
+    const allBetsResult = await program.account.bet.all();
+    const allBets = allBetsResult.map((bet) => bet.account);
+    setAllBets(allBets);
+
+    // Can use .filter to get just the users bets
+  }, [program]);
+
+  useEffect(() => {
+    // Fetch all bets if allBets doesn't exist
+    if (!allBets) fetchBets();
+  }, [allBets, fetchBets]);
+
+  const createBet = useCallback(
+    async (amount, price, duration, pythPriceKey) => {
+      if (!masterAccount) return;
+
+      try {
+        const betId = masterAccount.lastBetId.addn(1);
+        const res = await getBetAccountPk(betId);
+        console.log({ betPk: res });
+
+        let bet = await getBetAccountPk(betId);
+        let master = await getMasterAccountPk();
+        let player = wallet.publicKey;
+        console.log(
+          bet.toString(),
+          'BET',
+          master.toString(),
+          'MASTER',
+          player.toString(),
+          'PLAYER'
+        );
+
+        const txHash = await program.methods
+          .createBet(amount, price, duration, pythPriceKey)
+          .accounts({
+            bet: await getBetAccountPk(betId),
+            master: await getMasterAccountPk(),
+            player: wallet.publicKey,
+          })
+          .rpc();
+        await connection.confirmTransaction(txHash);
+        console.log('Created bet! ', txHash);
+        toast.success('Created bet!');
+      } catch (error) {
+        toast.error('Failed to create bet!');
+        console.log(error.message);
+      }
+    },
+    [masterAccount]
+  );
+
+  return (
+    <GlobalContext.Provider
+      value={{
+        masterAccount,
+        allBets,
+        createBet,
+      }}
+    >
+      {children}
+    </GlobalContext.Provider>
+  );
+};

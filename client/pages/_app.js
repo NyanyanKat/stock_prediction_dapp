@@ -10,6 +10,8 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
+import { GlobalState } from '../state/global';
+
 import '../styles/globals.css';
 function MyApp({ Component, pageProps }) {
   const [mounted, setMounted] = useState(false);
@@ -27,7 +29,11 @@ function MyApp({ Component, pageProps }) {
     >
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          {mounted && <Component {...pageProps} />}
+          {mounted && (
+            <GlobalState>
+              <Component {...pageProps} />
+            </GlobalState>
+          )}
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>
