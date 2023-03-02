@@ -42,10 +42,10 @@ const styles = {
   rightMain:
     'flex flex-col flex-1 h-4/5 bg-[#1E2123] mt-6 rounded-lg overflow-y-scroll noScroll',
   dropDownBets:
-    'absolute bg-[#1E2123] border-[#30363b] px-2 py-2 border rounded-xl top-7',
+    'absolute bg-[#1E2123] border-[#30363b] px-2 py-2 border rounded-xl top-7 cursor-pointer',
   formButtons: ' w-full flex flex-row justify-center p-2 text-2xl',
   button:
-    'rounded-lg py-2 px-16 text-[#ffffff] text-xs border-[#30363b] bg-[#1E2123] border ',
+    'rounded-lg py-2 px-16 text-[#ffffff] text-xs border-[#30363b] bg-[#1E2123] border cursor-pointer',
   inputForm: 'flex flex-row mt-4',
   input:
     'rounded-lg px-5 border-[#30363b] bg-[#1E2123] border mx-2 w-3/4 p-1 text-[#ffffff] focus:outline-none',
