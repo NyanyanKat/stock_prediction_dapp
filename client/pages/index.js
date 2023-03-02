@@ -84,7 +84,7 @@ const Home = () => {
 
   // console.log(masterAccount.lastBetId.toString(), 'Hello world');
   // console.log(allBets);
-  console.log(createBet);
+  // console.log(createBet);
 
   return (
     <div className={styles.wrapper}>
@@ -96,7 +96,7 @@ const Home = () => {
             <div className={styles.portfolioAmount}>{data.name}</div>
             <div className={styles.portfolioPercent}>
               +0.0008(+0.57%)
-              <span className={styles.pastHour}>Past Hour</span>
+              <span className={styles.pastHour}> Past Hour</span>
             </div>
           </div>
           <div>

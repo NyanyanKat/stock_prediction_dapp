@@ -116,12 +116,82 @@ export const GlobalState = ({ children }) => {
     [masterAccount]
   );
 
+  const enterBet = useCallback(
+    async (price, bet) => {
+      if (!masterAccount) return;
+
+      try {
+        const txHash = await program.methods
+          .enterBet(price)
+          .accounts({
+            bet: await getBetAccountPk(bet.id),
+            player: wallet.publicKey,
+          })
+          .rpc();
+        toast.success('Entered bet!');
+        console.log(txHash);
+      } catch (error) {
+        console.log("Couldn't enter bet ", error.message);
+        toast.error('Failed to enter bet!');
+      }
+    },
+    [masterAccount]
+  );
+
+  const closeBet = useCallback(
+    async (bet) => {
+      if (!masterAccount) return;
+
+      try {
+        const txHash = await program.methods
+          .closeBet()
+          .accounts({
+            bet: await getBetAccountPk(bet.id),
+            player: wallet.publicKey,
+          })
+          .rpc();
+        toast.success('Closed bet!');
+      } catch (error) {
+        toast.error('Failed to close bet!');
+        console.log("Couldn't close bet", error.message);
+      }
+    },
+    [masterAccount]
+  );
+
+  const claimBet = useCallback(
+    async (bet) => {
+      if (!masterAccount) return;
+
+      try {
+        const txHash = await program.methods
+          .claimBet()
+          .accounts({
+            bet: await getBetAccountPk(bet.id),
+            pyth: bet.pythPriceKey,
+            playerA: bet.predictionA.player,
+            playerB: bet.predictionB.player,
+            signer: wallet.publicKey,
+          })
+          .rpc();
+        toast.success('Claimed bet!');
+      } catch (error) {
+        console.log("Couldn't claim ", error.message);
+        toast.error('Failed to claim!');
+      }
+    },
+    [masterAccount]
+  );
+
   return (
     <GlobalContext.Provider
       value={{
         masterAccount,
         allBets,
         createBet,
+        closeBet,
+        enterBet,
+        claimBet,
       }}
     >
       {children}
